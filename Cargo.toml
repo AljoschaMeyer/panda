@@ -1,0 +1,6 @@
+[workspace]
+members = [
+  "panda_pile",
+  "panda_party",
+  "panda_queues",
+]

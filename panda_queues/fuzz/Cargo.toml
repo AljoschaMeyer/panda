@@ -1,0 +1,33 @@
+[package]
+name = "panda_queues-fuzz"
+version = "0.0.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = { version = "0.4.0", features = ["arbitrary-derive"] }
+arbitrary = { version = "1", features = ["derive"] }
+slice_n = "0.0.2"
+
+[dependencies.panda_queues]
+path = ".."
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "fixed_ende"
+path = "fuzz_targets/fixed_ende.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fixed_bulk"
+path = "fuzz_targets/fixed_bulk.rs"
+test = false
+doc = false

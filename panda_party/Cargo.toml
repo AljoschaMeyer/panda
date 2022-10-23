@@ -1,0 +1,19 @@
+[package]
+name = "panda_party"
+version = "0.1.0"
+authors = ["Aljoscha Meyer <mail@aljoscha-meyer.de>"]
+edition = "2021"
+license = "CC-PDDC"
+
+default = ["alloc", "arbitrary", "std"]
+
+alloc = [ "maybe-std/alloc" ]
+std = [ "maybe-std/std" ]
+
+[dependencies]
+slice_n = "0.0.2"
+panda_pile = {path = "../panda_pile"}
+panda_queues = {path = "../panda_queues"}
+wrapper = "0.1.1"
+arbitrary = { version = "1.0.2", features = ["derive"]}
+# arbitrary = { version = "1.0.2", optional = true, features = ["derive"]}
