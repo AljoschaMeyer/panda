@@ -41,6 +41,7 @@ pub mod nb_send;
 pub mod why;
 
 /// A sequence of arbitrary length is considered to consist of an arbitrary number of items of some type `R` followed by (at most) one item of type `L`. A `SequenceState<R, L>` indicates whether its contained value belongs to the part of the sequence that can be repeated an arbitrary number of times, or whether the last item of the sequence has been reached.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SequenceState<R, L> {
     /// More sequence items may follow.
     More(R),
@@ -49,6 +50,7 @@ pub enum SequenceState<R, L> {
 }
 
 /// Indicates why piping data from a producer into a consumer ended.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum PipeEnd<PL, CS> {
     /// The producer produced its last item.
     ProducerLast(PL),

@@ -78,7 +78,7 @@ pub fn scramble<I, R, L, S>(inner: I, operations: ConsumeOperations, capacity: N
     }
 }
 
-// Operates by filming its `buf` and `last`, and letting the inner consumer consume them via the `operations` when they become full.
+// Operates by filling its `buf` and `last`, and letting the inner consumer consume them via the `operations` when they become full.
 impl<I: BulkConsumer<Repeated = R, Last = L, Stopped = S>, R: Copy, L, S> Consumer for Scramble<I, R, L, S> {
     type Repeated = R;
     type Last = L;
@@ -93,6 +93,8 @@ impl<I: BulkConsumer<Repeated = R, Last = L, Stopped = S>, R: Copy, L, S> Consum
                         return Some(s);
                     }
                 }
+
+                self.buf.enqueue(item);
 
                 return None;
             }
@@ -171,7 +173,7 @@ impl<I: BulkConsumer<Repeated = R, Last = L, Stopped = S>, R: Copy, L, S> Scramb
                     return Some(s);
                 } else {
                     self.operations_index = (self.operations_index + 1) % self.operations.len();
-                        return None;
+                    return None;
                 }
             }
         }

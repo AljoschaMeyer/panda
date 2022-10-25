@@ -148,7 +148,9 @@ impl<I: BulkProducer<Repeated = R, Last = L, Stopped = S>, R: Copy, L, S> Scramb
                 match self.inner.produce() {
                     Final(l) => return Some(l),
                     More(r) => {
-                        self.buf.enqueue(r).expect("Erronous scrambler implementation.");
+                        if let Some(_) = self.buf.enqueue(r) {
+                            panic!("Erronous scrambler implementation.");
+                        }
                     }
                 }
             }

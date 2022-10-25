@@ -1,13 +1,20 @@
-pub mod cursor;
+mod cursor;
 pub use cursor::*;
 
-pub mod map_last;
+mod map_last;
 pub use map_last::*;
 
-pub mod inv;
+#[cfg(debug_assertions)]
+mod inv;
+#[cfg(debug_assertions)]
 pub use inv::*;
 
+#[cfg(not(debug_assertions))]
+mod wrap_noop;
+#[cfg(not(debug_assertions))]
+pub use wrap_noop::*;
+
 // #[cfg(all(any(feature = "std", feature = "alloc"), feature = "arbitrary"))]
-pub mod scramble;
+mod scramble;
 // #[cfg(all(any(feature = "std", feature = "alloc"), feature = "arbitrary"))]
 pub use scramble::*;

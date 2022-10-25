@@ -1,21 +1,23 @@
 use panda_pile::SequenceState::{self, *};
-use panda_pile::sync::Producer;
-use panda_pile::sync::BulkProducer;
+use panda_pile::sync::Consumer;
+use panda_pile::sync::BulkConsumer;
 
-use core::convert::{AsRef, AsMut};
 use core::num::NonZeroUsize;
+
+use core::mem::MaybeUninit;
 
 use slice_n::Slice1;
 use wrapper::Wrapper;
 
-pub struct Inv<I> {
+
+pub struct Inv<I>  {
     inner: I,
     active: bool,
     exposed_slots: usize,
 }
 
 pub fn inv<I>(inner: I) -> Inv<I> {
-    Inv {
+    Inv::<I> {
         inner,
         active: true,
         exposed_slots: 0,
@@ -43,38 +45,22 @@ impl<I> AsMut<I> for Inv<I> {
 impl<I> Inv<I> {
     fn check_inactive(&self) {
         if !self.active {
-            panic!("may not call `Producer` methods after the sequence has ended");
+            panic!("may not call `Consumer` methods after the sequence has ended");
         }
     }
 }
 
-impl<I, R, L, S> Producer for Inv<I> where
-    I: Producer<Repeated = R, Last = L, Stopped = S>
-{
+impl<I: BulkConsumer<Repeated = R, Last = L, Stopped = S>, R: Copy, L, S> Consumer for Inv<I> {
     type Repeated = R;
     type Last = L;
     type Stopped = S;
 
-    fn produce(&mut self) -> SequenceState<Self::Repeated, Self::Last> {
-        self.check_inactive();        
-        match self.inner.produce() {
-            More(r) => {
-                self.exposed_slots = 0;
-                return More(r);
-            }
-            Final(l) => {
-                self.active = false;
-                return Final(l);
-            }
-        }
-    }
-
-    fn slurp(&mut self) -> Option<Self::Last> {
+    fn consume(&mut self, item: Self::Repeated) -> Option<Self::Stopped> {
         self.check_inactive();
-        match self.inner.slurp() {
-            Some(l) => {
+        match self.inner.consume(item) {
+            Some(s) => {
                 self.active = false;
-                return Some(l);
+                return Some(s);
             }
             None => {
                 self.exposed_slots = 0;
@@ -83,20 +69,31 @@ impl<I, R, L, S> Producer for Inv<I> where
         }
     }
 
-    fn stop(&mut self, reason: Self::Stopped) -> () {
+    fn flush(&mut self) -> Option<Self::Stopped> {
+        self.check_inactive();
+        match self.inner.flush() {
+            Some(s) => {
+                self.active = false;
+                return Some(s);
+            }
+            None => {
+                self.exposed_slots = 0;
+                return None;
+            }
+        }
+    }
+
+    fn close(&mut self, last: Self::Last) -> Option<Self::Stopped> {
         self.check_inactive();
         self.active = false;
-        return self.inner.stop(reason);
+        return self.inner.close(last);
     }
 }
 
-impl<I, R, L, S>BulkProducer for Inv<I> where
-    I: BulkProducer<Repeated = R, Last = L, Stopped = S>,
-    R: Copy,
-{
-    fn producer_slots(&mut self) -> SequenceState<&Slice1<Self::Repeated>, Self::Last> {
+impl<I: BulkConsumer<Repeated = R, Last = L, Stopped = S>, R: Copy, L, S> BulkConsumer for Inv<I> {
+    fn consumer_slots(&mut self) -> SequenceState<&mut Slice1<MaybeUninit<Self::Repeated>>, Self::Stopped> {
         self.check_inactive();
-        match self.inner.producer_slots() {
+        match self.inner.consumer_slots() {
             More(s) => {
                 self.exposed_slots = s.len().into();
                 return More(s);
@@ -108,14 +105,14 @@ impl<I, R, L, S>BulkProducer for Inv<I> where
         }
     }
 
-    fn did_produce(&mut self, amount: NonZeroUsize) {
+    unsafe fn did_consume(&mut self, amount: NonZeroUsize) {
         self.check_inactive();
         let as_usize: usize = amount.into();
         if as_usize > self.exposed_slots {
-            panic!("may not call `did_produce` with a greater amount than slots have been exposed");
+            panic!("may not call `did_The consumer` with a greater amount than slots have been exposed");
         } else {
             self.exposed_slots -= as_usize;
-            return self.inner.did_produce(amount);
+            return self.inner.did_consume(amount);
         }
     }
 }
