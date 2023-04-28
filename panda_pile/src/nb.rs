@@ -104,7 +104,7 @@ pub trait Producer {
     /// The information passed to the [`Producer`](Producer) when indicating that no further items needs to be produced. Frequently but not necessarily the unit type `()`.
     type Stopped;
 
-    /// The [`Future`](core::future::Future) for the [`Produce`](Self::Produceconsume) method.
+    /// The [`Future`](core::future::Future) for the [`Produce`](Self::Produce) method.
     ///
     /// See [the crate documentation](../index.html#nonblocking-traits) for more details on how this library expresses asynchronous trait methods.
     type Produce: Future<Output = SequenceState<Self::Repeated, Self::Last>>;
@@ -145,7 +145,7 @@ pub trait BulkProducer: Producer where Self::Repeated: Copy {
     /// Returns a nonempty buffer from which items can be taken, or the last sequence item if it has been reached.
     ///
     /// This method must be compatible with [`Self::produce`](Producer::produce): when returning a slice of length `n`, the next `n` calls to [`Self::produce`](Producer::produce) have to return those `n` items.
-    fn producer_slots(self: Pin<&mut Self>) -> Pin<&mut Self::ProducerSlots<'_>>;
+    fn producer_slots<'s>(self: Pin<&'s mut Self>) -> Pin<&mut Self::ProducerSlots<'s>>;
 
     /// Tells the [`BulkProducer`](BulkProducer) that some number of items has been taken from it.
     ///

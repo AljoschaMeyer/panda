@@ -9,6 +9,7 @@
 use core::mem::MaybeUninit;
 
 pub mod sync;
+pub mod nb;
 
 // pub(crate) fn maybe_uninit_slice<'a, T>(s: &'a [T]) -> &'a [MaybeUninit<T>] {
 //     let ptr = s.as_ptr().cast::<MaybeUninit<T>>();

@@ -104,7 +104,7 @@ pub trait Producer {
     /// The information passed to the [`Producer`](Producer) when indicating that no further items needs to be produced. Frequently but not necessarily the unit type `()`.
     type Stopped;
 
-    /// The [`Future`](core::future::Future) for the [`Produce`](Self::Produceconsume) method.
+    /// The [`Future`](core::future::Future) for the [`Produce`](Self::Produce) method.
     ///
     /// See [the crate documentation](../index.html#nonblocking-traits) for more details on how this library expresses asynchronous trait methods.
     type Produce: Future<Output = SequenceState<Self::Repeated, Self::Last>> + Send;
